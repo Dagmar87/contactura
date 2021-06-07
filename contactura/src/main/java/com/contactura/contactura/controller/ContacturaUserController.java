@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,13 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contactura.contactura.model.ContacturaUser;
 import com.contactura.contactura.repository.ContacturaUserRepository;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+@CrossOrigin
 @RestController
 @RequestMapping({"/user"})
 public class ContacturaUserController {
 	
 	@Autowired
 	private ContacturaUserRepository repository;
+	
+	public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	
 	@RequestMapping("/login")
 	@GetMapping
@@ -36,7 +42,7 @@ public class ContacturaUserController {
 				.substring("Basic".length()).trim();
 		//return () -> new String(Base64.getDecoder())
 		//		.decode(token)).split(":")[0];
-		return ResponseEntity.ok().body("Usuario Logado com Sucesso\nToken:" + token);
+		return ResponseEntity.ok().body(gson.toJson(token));
 				
 	}
 	
@@ -53,7 +59,7 @@ public class ContacturaUserController {
 	public ResponseEntity<?> findById(@PathVariable long id){
 		
 		return repository.findById(id)
-				.map(user -> ResponseEntity.ok().body(user))
+				.map(user -> ResponseEntity.ok().body(gson.toJson(user)))
 				.orElse(ResponseEntity.notFound().build());			
 		
 	}
@@ -80,7 +86,7 @@ public class ContacturaUserController {
 					record.setPassword(criptografarSenha(user.getPassword()));
 					record.setAdmin(user.isAdmin());
 					ContacturaUser update = repository.save(record);
-					return ResponseEntity.ok().body(update);
+					return ResponseEntity.ok().body(gson.toJson(update));
 				}).orElse(ResponseEntity.notFound().build());
 		
 	}
@@ -93,7 +99,7 @@ public class ContacturaUserController {
 		return repository.findById(id)
 				.map(record -> {
 					repository.deleteById(id);
-					return ResponseEntity.ok().body("Deletado com Sucesso");
+					return ResponseEntity.ok().body(gson.toJson("Deletado com Sucesso"));
 				}).orElse(ResponseEntity.notFound().build());
 		
 	}
